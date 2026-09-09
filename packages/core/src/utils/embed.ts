@@ -52,7 +52,7 @@ export class PolymarketEmbedError extends Error {
   }
 }
 
-const DEFAULT_REGISTRY_BASE_URL = "https://polymarket-ui-kit-demo.vercel.app/r";
+const DEFAULT_REGISTRY_BASE_URL = "https://polymarket-ui-kit-demo-jac10.vercel.app/r";
 const SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
 function asAbsoluteUrl(path: string, baseUrl?: string): string {

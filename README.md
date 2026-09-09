@@ -77,7 +77,7 @@ pnpm demo:dev
 Hosted registry target for shadcn-style projects:
 
 ```bash
-npx shadcn@latest add https://polymarket-ui-kit-demo.vercel.app/r/market-card.json
+npx shadcn@latest add https://polymarket-ui-kit-demo-jac10.vercel.app/r/market-card.json
 ```
 
 The current hosted registry lives on the Vercel demo domain. A custom registry
@@ -109,7 +109,7 @@ Paste a Polymarket URL or slug and generate a live iframe, React snippet, OG
 PNG/SVG links, and shadcn-style registry command from one surface.
 
 Live Studio:
-[polymarket-ui-kit-demo.vercel.app/studio](https://polymarket-ui-kit-demo.vercel.app/studio)
+[polymarket-ui-kit-demo-jac10.vercel.app/studio](https://polymarket-ui-kit-demo-jac10.vercel.app/studio)
 
 ```tsx
 import {
@@ -408,12 +408,12 @@ The moat is not just visual polish. It is DX:
 
 ## Demo Links
 
-- Live demo: [polymarket-ui-kit-demo.vercel.app](https://polymarket-ui-kit-demo.vercel.app/)
-- Link-to-Embed Studio: [studio](https://polymarket-ui-kit-demo.vercel.app/studio)
-- Hosted registry: [registry.json](https://polymarket-ui-kit-demo.vercel.app/registry.json)
-- Registry item: [embed-studio.json](https://polymarket-ui-kit-demo.vercel.app/r/embed-studio.json)
-- Demo OG PNG: [api/og](https://polymarket-ui-kit-demo.vercel.app/api/og?slug=who-will-win-the-2028-us-presidential-election&theme=light&format=png)
-- Demo OG SVG: [api/og?format=svg](https://polymarket-ui-kit-demo.vercel.app/api/og?slug=who-will-win-the-2028-us-presidential-election&theme=light&format=svg)
+- Live demo: [polymarket-ui-kit-demo-jac10.vercel.app](https://polymarket-ui-kit-demo-jac10.vercel.app/)
+- Link-to-Embed Studio: [studio](https://polymarket-ui-kit-demo-jac10.vercel.app/studio)
+- Hosted registry: [registry.json](https://polymarket-ui-kit-demo-jac10.vercel.app/registry.json)
+- Registry item: [embed-studio.json](https://polymarket-ui-kit-demo-jac10.vercel.app/r/embed-studio.json)
+- Demo OG PNG: [api/og](https://polymarket-ui-kit-demo-jac10.vercel.app/api/og?slug=who-will-win-the-2028-us-presidential-election&theme=light&format=png)
+- Demo OG SVG: [api/og?format=svg](https://polymarket-ui-kit-demo-jac10.vercel.app/api/og?slug=who-will-win-the-2028-us-presidential-election&theme=light&format=svg)
 - Docs app: `pnpm docs:dev`
 - Demo app: `pnpm demo:dev`
 - Storybook: `pnpm storybook`
@@ -428,8 +428,8 @@ into vertical apps, and make builder-code-aware UX easier to ship.
 Grant submission checklist:
 
 - Repo: [github.com/horn111/polymarket-ui-kit](https://github.com/horn111/polymarket-ui-kit)
-- Live demo: [polymarket-ui-kit-demo.vercel.app](https://polymarket-ui-kit-demo.vercel.app/)
-- Link-to-Embed Studio: [studio](https://polymarket-ui-kit-demo.vercel.app/studio)
+- Live demo: [polymarket-ui-kit-demo-jac10.vercel.app](https://polymarket-ui-kit-demo-jac10.vercel.app/)
+- Link-to-Embed Studio: [studio](https://polymarket-ui-kit-demo-jac10.vercel.app/studio)
 - X account: [x.com/debythm](https://x.com/debythm)
 - Advanced Builder Flow: [examples/clob-v2-builder-flow](examples/clob-v2-builder-flow)
 - 60-second demo script: [docs/demo-script.md](docs/demo-script.md)
