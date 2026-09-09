@@ -24,6 +24,7 @@ export interface ShareImageUrlOptions {
 }
 
 export interface IframeSnippetOptions extends EmbedUrlOptions {
+
   title?: string | undefined;
   width?: number | undefined;
   height?: number | undefined;
@@ -33,6 +34,15 @@ export interface ReactSnippetOptions {
   slug: string;
   surface?: EmbedSurface | undefined;
   builderCode?: string | undefined;
+}
+
+export interface EmbedShotUrlOptions {
+  slug: string;
+  baseUrl?: string | undefined;
+  theme?: ShareImageTheme | undefined;
+  attribution?: string | undefined;
+  /** Photo override for the embed-style snapshot. Empty = market.image default. */
+  backgroundImage?: string | undefined;
 }
 
 export interface RegistryCommandOptions {
@@ -168,6 +178,24 @@ export function buildShareImageUrl({
   appendOptional(params, "backgroundImage", backgroundImage);
 
   return asAbsoluteUrl(`/api/og?${params.toString()}`, baseUrl);
+}
+
+export function buildEmbedShotUrl({
+  attribution,
+  backgroundImage,
+  baseUrl,
+  slug,
+  theme = "dark",
+}: EmbedShotUrlOptions): string {
+  const params = new URLSearchParams({
+    slug: resolvePolymarketSlug(slug),
+    theme,
+  });
+
+  appendOptional(params, "attribution", attribution);
+  appendOptional(params, "backgroundImage", backgroundImage);
+
+  return asAbsoluteUrl(`/api/embed-shot?${params.toString()}`, baseUrl);
 }
 
 export function buildIframeSnippet({

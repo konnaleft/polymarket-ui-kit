@@ -12,13 +12,11 @@
     "test": "echo demo smoke"
   },
   "dependencies": {
-    "@img/sharp-linux-x64": "^0.35.4",
     "@polymarket-ui-kit/core": "workspace:*",
     "@polymarket-ui-kit/react": "workspace:*",
     "@polymarket-ui-kit/registry": "workspace:*",
     "next": "^15.1.7",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0",
-    "sharp": "^0.35.4"
+    "react-dom": "^19.0.0"
   }
 }

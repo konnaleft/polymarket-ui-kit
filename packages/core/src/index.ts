@@ -16,5 +16,4 @@ export * from "./utils/clipboard-image";
 export * from "./utils/embed";
 export * from "./utils/fetcher";
 export * from "./utils/invariant";
-export * from "./utils/share-embed-svg";
 export * from "./utils/share-image";

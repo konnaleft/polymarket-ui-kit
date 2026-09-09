@@ -40,7 +40,7 @@ const themes = {
   },
 };
 
-export function escapeSvg(value: string): string {
+function escapeSvg(value: string): string {
   return value
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
@@ -48,13 +48,13 @@ export function escapeSvg(value: string): string {
     .replace(/"/g, "&quot;");
 }
 
-export function truncate(value: string, maxLength: number): string {
+function truncate(value: string, maxLength: number): string {
   return value.length > maxLength
     ? `${value.slice(0, Math.max(0, maxLength - 3))}...`
     : value;
 }
 
-export function splitText(value: string, maxLength: number, maxLines: number): string[] {
+function splitText(value: string, maxLength: number, maxLines: number): string[] {
   const lines: string[] = [];
   let current = "";
 
