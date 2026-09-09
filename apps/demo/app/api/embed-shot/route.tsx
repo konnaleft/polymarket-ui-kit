@@ -212,11 +212,11 @@ export async function GET(request: Request) {
           <div
             style={{
               color: "#ffffff",
-              fontSize: 56,
+              fontSize: 50,
               fontWeight: 800,
               letterSpacing: -1,
-              lineHeight: 1.05,
-              maxHeight: 190,
+              lineHeight: 1.04,
+              maxHeight: 212,
               overflow: "hidden",
               width: 640,
             }}
