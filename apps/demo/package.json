@@ -17,6 +17,7 @@
     "@polymarket-ui-kit/registry": "workspace:*",
     "next": "^15.1.7",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "sharp": "^0.35.4"
   }
 }

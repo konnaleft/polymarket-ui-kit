@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import {
+  buildEmbedShotUrl,
   buildIframeSnippet,
   buildReactSnippet,
   buildRegistryCommand,
@@ -163,6 +164,13 @@ export function EmbedSnippetPanel({
         error: null,
         outputs: {
           iframe: buildIframeSnippet(common),
+          embedPng: buildEmbedShotUrl({
+            baseUrl,
+            slug,
+            theme,
+            ...(attribution ? { attribution } : {}),
+            ...(backgroundImage ? { backgroundImage } : {}),
+          }),
           ogPng: buildShareImageUrl({
             baseUrl,
             format: "png",
@@ -263,7 +271,7 @@ export function EmbedSnippetPanel({
             />
             <CopyImageBlock
               disabled={!resolved.outputs}
-              imageUrl={resolved.outputs?.ogPng ?? ""}
+              imageUrl={resolved.outputs?.embedPng ?? ""}
               slug={resolved.slug}
             />
           </>

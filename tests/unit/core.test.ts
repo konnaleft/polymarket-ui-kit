@@ -6,7 +6,9 @@ import {
   buildIframeSnippet,
   buildReactSnippet,
   buildShareImageUrl,
+  buildEmbedShotUrl,
   copyShareImageToClipboard,
+  createShareCardEmbedSvg,
   createShareCardSvg,
   formatCurrency,
   formatProbability,
@@ -604,5 +606,71 @@ describe("copyShareImageToClipboard", () => {
       },
     });
     await expect(copyShareImageToClipboard(url, broken.env)).resolves.toBe("failed");
+  });
+});
+
+describe("createShareCardEmbedSvg", () => {
+  const market = normalizeMarket({
+    id: "9",
+    slug: "sample-embed",
+    question: "Will Benjamin Netanyahu be the next Prime Minister of Israel?",
+    active: true,
+    outcomes: '["Yes","No"]',
+    outcomePrices: '["0.28","0.72"]',
+    clobTokenIds: '["yes","no"]',
+    volume: "3700000",
+    liquidity: "131300",
+    image: "https://example.com/photo.jpg",
+  });
+
+  it("renders the embed layout with photo, brand and odds", () => {
+    const svg = createShareCardEmbedSvg(market, { attribution: "pui-kit/demo" });
+
+    expect(svg).toContain("Polymarket");
+    expect(svg).toContain("LIVE MARKET");
+    expect(svg).toContain("Will Benjamin Netanyahu");
+    expect(svg).toContain("28c");
+    expect(svg).toContain("PUI-KIT/DEMO");
+    expect(svg).toContain('<image href="https://example.com/photo.jpg"');
+    expect(svg).toContain("pui-embed-scrim");
+    expect(svg).toContain("LEADING OUTCOME");
+  });
+
+  it("renders without photo elements when the market has no image", () => {
+    const svg = createShareCardEmbedSvg({ ...market, image: null, icon: null });
+
+    expect(svg).not.toContain("<image");
+    expect(svg).not.toContain("pui-embed-scrim");
+    expect(svg).toContain("28c");
+  });
+
+  it("escapes question text for SVG", () => {
+    const svg = createShareCardEmbedSvg({
+      ...market,
+      question: "Will <b> & \"quotes\" break it?",
+    });
+
+    expect(svg).toContain("Will &lt;b&gt; &amp; &quot;quotes&quot; break it?");
+  });
+});
+
+describe("buildEmbedShotUrl", () => {
+  it("builds the embed-shot URL with params", () => {
+    const url = buildEmbedShotUrl({
+      baseUrl: "https://demo.test",
+      slug: "sample-embed",
+      theme: "dark",
+      attribution: "pui-kit/demo",
+    });
+
+    expect(url).toBe(
+      "https://demo.test/api/embed-shot?slug=sample-embed&theme=dark&attribution=pui-kit%2Fdemo",
+    );
+  });
+
+  it("supports relative URLs without a base", () => {
+    expect(buildEmbedShotUrl({ slug: "sample-embed" })).toBe(
+      "/api/embed-shot?slug=sample-embed",
+    );
   });
 });
