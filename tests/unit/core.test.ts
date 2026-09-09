@@ -6,6 +6,7 @@ import {
   buildIframeSnippet,
   buildReactSnippet,
   buildShareImageUrl,
+  copyShareImageToClipboard,
   createShareCardSvg,
   formatCurrency,
   formatProbability,
@@ -526,5 +527,82 @@ describe("fee preview", () => {
     const preview = previewFees({ notional: 100 });
     expect(preview.builderFee).toBe(0);
     expect(preview.builderFeeBps).toBe(0);
+  });
+});
+
+describe("copyShareImageToClipboard", () => {
+  const pngBytes = new Blob(["fake-png"], { type: "image/png" });
+  const url = "https://demo.test/api/og?slug=sample&format=png";
+
+  function makeEnv(overrides: Record<string, unknown> = {}) {
+    const calls: { fetched: string[]; written: Array<Record<string, Blob>>[] } = {
+      fetched: [],
+      written: [],
+    };
+
+    return {
+      calls,
+      env: {
+        fetchImage: async (target: string) => {
+          calls.fetched.push(target);
+          return { ok: true, blob: async () => pngBytes };
+        },
+        writeItems: async (items: Array<Record<string, Blob>>) => {
+          calls.written.push(items);
+        },
+        ...overrides,
+      },
+    };
+  }
+
+  it("fetches the png and writes it to the clipboard", async () => {
+    const { calls, env } = makeEnv();
+
+    await expect(copyShareImageToClipboard(url, env)).resolves.toBe("copied");
+    expect(calls.fetched).toEqual([url]);
+    expect(calls.written).toHaveLength(1);
+    expect(calls.written[0]?.[0]).toHaveProperty("image/png", pngBytes);
+  });
+
+  it("reports unsupported without an environment", async () => {
+    await expect(copyShareImageToClipboard(url, null)).resolves.toBe("unsupported");
+  });
+
+  it("reports failed when the download fails", async () => {
+    const throwing = makeEnv({
+      fetchImage: async () => {
+        throw new Error("offline");
+      },
+    });
+    await expect(copyShareImageToClipboard(url, throwing.env)).resolves.toBe("failed");
+
+    const badStatus = makeEnv({
+      fetchImage: async () => ({ ok: false, blob: async () => pngBytes }),
+    });
+    await expect(copyShareImageToClipboard(url, badStatus.env)).resolves.toBe("failed");
+
+    const empty = makeEnv({
+      fetchImage: async () => ({
+        ok: true,
+        blob: async () => new Blob([], { type: "image/png" }),
+      }),
+    });
+    await expect(copyShareImageToClipboard(url, empty.env)).resolves.toBe("failed");
+  });
+
+  it("maps clipboard permission denials to denied", async () => {
+    const denied = makeEnv({
+      writeItems: async () => {
+        throw new DOMException("denied", "NotAllowedError");
+      },
+    });
+    await expect(copyShareImageToClipboard(url, denied.env)).resolves.toBe("denied");
+
+    const broken = makeEnv({
+      writeItems: async () => {
+        throw new Error("boom");
+      },
+    });
+    await expect(copyShareImageToClipboard(url, broken.env)).resolves.toBe("failed");
   });
 });

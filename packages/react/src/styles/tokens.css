@@ -1471,6 +1471,19 @@
     white-space: pre-wrap;
   }
 
+  .pui-embed-snippet-panel__hint {
+    color: var(--pui-text-muted);
+    font-size: 0.72rem;
+    line-height: 1.5;
+    margin: 0;
+    padding: 0.7rem 0.8rem;
+  }
+
+  .pui-embed-snippet-panel__hint a {
+    color: inherit;
+    text-decoration: underline;
+  }
+
   .pui-trade-drawer {
     bottom: 0;
     display: none;

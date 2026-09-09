@@ -6,8 +6,10 @@ import {
   buildReactSnippet,
   buildRegistryCommand,
   buildShareImageUrl,
+  copyShareImageToClipboard,
   PolymarketEmbedError,
   resolvePolymarketSlug,
+  type CopyShareImageStatus,
   type EmbedSurface,
   type ShareImageTheme,
 } from "@polymarket-ui-kit/core";
@@ -51,6 +53,82 @@ function SnippetBlock({ copied, disabled, label, onCopy, value }: SnippetBlockPr
         </button>
       </div>
       <code>{value}</code>
+    </div>
+  );
+}
+
+type ImageCopyState = "idle" | "copying" | CopyShareImageStatus;
+
+function CopyImageBlock({
+  disabled,
+  imageUrl,
+  slug,
+}: {
+  disabled?: boolean;
+  imageUrl: string;
+  slug: string | null;
+}) {
+  const [state, setState] = useState<ImageCopyState>("idle");
+
+  async function handleCopyImage() {
+    if (!imageUrl) {
+      return;
+    }
+
+    setState("copying");
+    const status = await copyShareImageToClipboard(imageUrl);
+    setState(status);
+    window.setTimeout(() => setState("idle"), status === "copied" ? 5000 : 9000);
+  }
+
+  const buttonLabel =
+    state === "copying" ? "Copying…" : state === "copied" ? "Copied ✓" : "Copy image";
+  const fileName = `polymarket-${slug ?? "card"}.png`;
+
+  return (
+    <div className="pui-embed-snippet-panel__block">
+      <div>
+        <span>Card PNG</span>
+        <button
+          disabled={disabled || state === "copying"}
+          onClick={handleCopyImage}
+          type="button"
+        >
+          {buttonLabel}
+        </button>
+      </div>
+      {state === "copied" ? (
+        <p className="pui-embed-snippet-panel__hint">
+          Copied! Paste (Ctrl+V) into your X post.
+        </p>
+      ) : null}
+      {state === "denied" ? (
+        <p className="pui-embed-snippet-panel__hint">
+          Clipboard blocked — allow access and retry, or{" "}
+          <a download={fileName} href={imageUrl}>
+            download the PNG
+          </a>
+          .
+        </p>
+      ) : null}
+      {state === "unsupported" ? (
+        <p className="pui-embed-snippet-panel__hint">
+          Image copy is not supported in this browser —{" "}
+          <a download={fileName} href={imageUrl}>
+            download the PNG
+          </a>{" "}
+          and attach it manually.
+        </p>
+      ) : null}
+      {state === "failed" ? (
+        <p className="pui-embed-snippet-panel__hint">
+          Couldn&apos;t fetch the image — retry, or{" "}
+          <a download={fileName} href={imageUrl}>
+            download the PNG
+          </a>
+          .
+        </p>
+      ) : null}
     </div>
   );
 }
@@ -175,13 +253,20 @@ export function EmbedSnippetPanel({
 
       <div className="pui-embed-snippet-panel__grid" role="tabpanel">
         {outputTab === "embed" ? (
-          <SnippetBlock
-            copied={copied}
-            disabled={!resolved.outputs}
-            label="iframe"
-            onCopy={copyValue}
-            value={resolved.outputs?.iframe ?? ""}
-          />
+          <>
+            <SnippetBlock
+              copied={copied}
+              disabled={!resolved.outputs}
+              label="iframe"
+              onCopy={copyValue}
+              value={resolved.outputs?.iframe ?? ""}
+            />
+            <CopyImageBlock
+              disabled={!resolved.outputs}
+              imageUrl={resolved.outputs?.ogPng ?? ""}
+              slug={resolved.slug}
+            />
+          </>
         ) : null}
         {outputTab === "react" ? (
           <SnippetBlock
@@ -200,6 +285,11 @@ export function EmbedSnippetPanel({
               label="OG PNG"
               onCopy={copyValue}
               value={resolved.outputs?.ogPng ?? ""}
+            />
+            <CopyImageBlock
+              disabled={!resolved.outputs}
+              imageUrl={resolved.outputs?.ogPng ?? ""}
+              slug={resolved.slug}
             />
             <SnippetBlock
               copied={copied}
