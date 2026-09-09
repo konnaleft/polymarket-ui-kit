@@ -994,6 +994,46 @@
   }
 
   /*
+   * Photo variant: market picture behind a dark scrim. Forces the dark
+   * treatment via local vars so text stays legible even when the page
+   * theme is light. The background image itself comes from an inline
+   * style on the element (see ShareCard).
+   */
+  .pui-share-card--photo {
+    --pui-canvas: oklch(0.14 0.035 258);
+    --pui-surface-1: oklch(0.18 0.04 258);
+    --pui-surface-3: oklch(0.285 0.06 258);
+    --pui-ink: oklch(0.96 0.012 255);
+    --pui-muted-ink: oklch(0.75 0.035 255);
+    --pui-soft-ink: oklch(0.68 0.04 255);
+    --pui-border: oklch(0.36 0.06 258 / 0.82);
+    --pui-primary: oklch(0.7 0.16 252);
+    --pui-primary-hover: oklch(0.79 0.13 247);
+    --pui-live: oklch(0.76 0.12 220);
+    /* NOTE: --pui-text* aliases bind to --pui-ink at their declaring
+       element, so they must be re-pointed here explicitly. */
+    --pui-text: oklch(0.96 0.012 255);
+    --pui-text-muted: oklch(0.75 0.035 255);
+    --pui-text-soft: oklch(0.68 0.04 255);
+    border: 0;
+    color: var(--pui-text);
+    color-scheme: dark;
+    min-height: 420px;
+  }
+
+  .pui-share-card--photo h2,
+  .pui-share-card--photo .pui-share-card__price,
+  .pui-share-card--photo .pui-share-card__brand {
+    text-shadow: 0 2px 18px rgb(0 0 0 / 0.45);
+  }
+
+  .pui-share-card--photo .pui-share-card__quote,
+  .pui-share-card--photo .pui-share-card__stats div {
+    background: rgb(6 14 32 / 0.45);
+    backdrop-filter: blur(8px);
+  }
+
+  /*
    * Share cards often live in narrow Studio and documentation previews while
    * the page itself remains desktop-wide. Respond to the card's own width so
    * the headline never borrows space from the brand line or the data footer.

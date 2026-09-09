@@ -9,6 +9,8 @@ export interface EmbedUrlOptions {
   theme?: ShareImageTheme | undefined;
   attribution?: string | undefined;
   builderCode?: string | undefined;
+  /** Photo override for share-card surfaces. Empty = market.image default. */
+  backgroundImage?: string | undefined;
 }
 
 export interface ShareImageUrlOptions {
@@ -17,6 +19,8 @@ export interface ShareImageUrlOptions {
   theme?: ShareImageTheme | undefined;
   format?: ShareImageFormat | undefined;
   attribution?: string | undefined;
+  /** Photo override for the OG export. Empty = market.image default. */
+  backgroundImage?: string | undefined;
 }
 
 export interface IframeSnippetOptions extends EmbedUrlOptions {
@@ -126,6 +130,7 @@ export function resolvePolymarketSlug(input: string): string {
 
 export function buildEmbedUrl({
   attribution,
+  backgroundImage,
   baseUrl,
   builderCode,
   slug,
@@ -140,12 +145,14 @@ export function buildEmbedUrl({
 
   appendOptional(params, "attribution", attribution);
   appendOptional(params, "builderCode", builderCode);
+  appendOptional(params, "backgroundImage", backgroundImage);
 
   return asAbsoluteUrl(`/embed/${encodeURIComponent(resolvedSlug)}?${params.toString()}`, baseUrl);
 }
 
 export function buildShareImageUrl({
   attribution,
+  backgroundImage,
   baseUrl,
   format = "png",
   slug,
@@ -158,6 +165,7 @@ export function buildShareImageUrl({
   });
 
   appendOptional(params, "attribution", attribution);
+  appendOptional(params, "backgroundImage", backgroundImage);
 
   return asAbsoluteUrl(`/api/og?${params.toString()}`, baseUrl);
 }

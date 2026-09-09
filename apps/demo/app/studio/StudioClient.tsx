@@ -32,6 +32,7 @@ const outputModes: Array<{ label: string; value: OutputMode }> = [
 
 export function StudioClient() {
   const [attribution, setAttribution] = useState("pui-kit/demo");
+  const [backgroundImage, setBackgroundImage] = useState("");
   const [builderCode, setBuilderCode] = useState(sampleBuilder.code ?? "");
   const [input, setInput] = useState(defaultInput);
   const [origin, setOrigin] = useState("");
@@ -46,6 +47,7 @@ export function StudioClient() {
   const resolved = useMemo(() => {
     try {
       const slug = resolvePolymarketSlug(input);
+      const photoOverride = backgroundImage.trim() ? backgroundImage.trim() : undefined;
       const common = {
         baseUrl: origin,
         slug,
@@ -53,6 +55,7 @@ export function StudioClient() {
         theme,
         ...(attribution ? { attribution } : {}),
         ...(builderCode ? { builderCode } : {}),
+        ...(photoOverride ? { backgroundImage: photoOverride } : {}),
       };
 
       return {
@@ -64,6 +67,7 @@ export function StudioClient() {
           slug,
           theme,
           ...(attribution ? { attribution } : {}),
+          ...(photoOverride ? { backgroundImage: photoOverride } : {}),
         }),
         ogSvgUrl: buildShareImageUrl({
           baseUrl: origin,
@@ -71,6 +75,7 @@ export function StudioClient() {
           slug,
           theme,
           ...(attribution ? { attribution } : {}),
+          ...(photoOverride ? { backgroundImage: photoOverride } : {}),
         }),
         slug,
       };
@@ -86,7 +91,7 @@ export function StudioClient() {
         slug: null,
       };
     }
-  }, [attribution, builderCode, input, origin, surface, theme]);
+  }, [attribution, backgroundImage, builderCode, input, origin, surface, theme]);
 
   const previewUrl =
     outputMode === "og-png"
@@ -138,6 +143,15 @@ export function StudioClient() {
             <input
               onChange={(event) => setAttribution(event.target.value)}
               value={attribution}
+            />
+          </label>
+          <label>
+            BACKGROUND IMAGE URL (EMPTY = MARKET PHOTO)
+            <input
+              onChange={(event) => setBackgroundImage(event.target.value)}
+              placeholder="https://… or /photo.jpg"
+              type="url"
+              value={backgroundImage}
             />
           </label>
           <label>
@@ -205,6 +219,7 @@ export function StudioClient() {
             surface={surface}
             theme={theme}
             {...(builderCode ? { builderCode } : {})}
+            {...(backgroundImage.trim() ? { backgroundImage: backgroundImage.trim() } : {})}
             {...(origin ? { registryBaseUrl: `${origin}/r` } : {})}
           />
         </div>

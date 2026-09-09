@@ -1,7 +1,9 @@
 import {
   clampProbability,
+  escapeCssUrl,
   formatCompactNumber,
   probabilityToCents,
+  resolveBackgroundImage,
   type PolymarketMarket,
 } from "@polymarket-ui-kit/core";
 import { cx } from "./shared";
@@ -10,15 +12,27 @@ export interface ShareCardProps {
   market: PolymarketMarket;
   className?: string;
   attribution?: string;
+  /**
+   * Photo override (Milei, etc.). Defaults to the market's own
+   * Gamma image/icon. Photo cards render with the dark treatment.
+   */
+  backgroundImage?: string;
+  /** "right center" keeps the face on the right, like the reference card. */
+  backgroundPosition?: string;
 }
 
 export function ShareCard({
   market,
   className,
   attribution = "polymarket-ui-kit",
+  backgroundImage,
+  backgroundPosition = "right center",
 }: ShareCardProps) {
+  const photo = resolveBackgroundImage(market, backgroundImage);
   const leadingOutcome = market.outcomes[0];
-  const probability = leadingOutcome ? clampProbability(leadingOutcome.price ?? 0) : 0;
+  const probability = leadingOutcome
+    ? clampProbability(leadingOutcome.price ?? 0)
+    : 0;
   const probabilityWidth = `${Math.round(probability * 100)}%`;
   const stats = [
     market.volume
@@ -33,7 +47,30 @@ export function ShareCard({
   ].filter((item): item is { label: string; value: string } => Boolean(item));
 
   return (
-    <article className={cx("pui-card pui-share-card", className)}>
+    <article
+      className={cx(
+        "pui-card pui-share-card",
+        photo && "pui-share-card--photo",
+        className,
+      )}
+      style={
+        photo
+          ? {
+              backgroundImage: `
+                linear-gradient(
+                  90deg,
+                  rgba(8, 18, 40, 0.94) 38%,
+                  rgba(8, 18, 40, 0.55) 68%,
+                  rgba(8, 18, 40, 0.28) 100%
+                ),
+                url("${escapeCssUrl(photo)}")
+              `,
+              backgroundSize: "cover",
+              backgroundPosition,
+            }
+          : undefined
+      }
+    >
       <div className="pui-share-card__topline">
         <div className="pui-row">
           <span className="pui-share-card__brand">Polymarket</span>

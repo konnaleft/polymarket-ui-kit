@@ -9,6 +9,7 @@ type EmbedPageProps = {
   params: Promise<{ slug: string }>;
   searchParams: Promise<{
     attribution?: string;
+    backgroundImage?: string;
     builderCode?: string;
     surface?: string;
     theme?: string;
@@ -46,7 +47,13 @@ export default async function EmbedPage({ params, searchParams }: EmbedPageProps
           <MarketCard market={market} points={points} />
         ) : null}
         {surface === "share-card" ? (
-          <ShareCard market={market} attribution={attribution} />
+          <ShareCard
+            market={market}
+            attribution={attribution}
+            {...(query.backgroundImage
+              ? { backgroundImage: query.backgroundImage }
+              : {})}
+          />
         ) : null}
         {surface === "builder-disclosure" ? (
           <BuilderFeeDisclosure

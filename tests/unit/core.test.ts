@@ -18,7 +18,9 @@ import {
   normalizePriceHistory,
   PolymarketEmbedError,
   previewFees,
+  resolveBackgroundImage,
   resolvePolymarketSlug,
+  sanitizeImageUrl,
   withQuery,
 } from "@polymarket-ui-kit/core";
 import { describe, expect, it, vi } from "vitest";
@@ -387,6 +389,102 @@ describe("distribution embed helpers", () => {
     ).toBe(
       "/embed/will-bitcoin-hit-100k-in-2026?surface=builder-disclosure&theme=dark&builderCode=0xabc",
     );
+  });
+});
+
+describe("share card photo backgrounds", () => {
+  const photoMarket = normalizeMarket({
+    id: "1",
+    slug: "sample",
+    question: "Will Milei win?",
+    active: true,
+    outcomes: '["Yes","No"]',
+    outcomePrices: '["0.53","0.47"]',
+    volume: 168000,
+    image: "https://polymarket.com/milei.jpg",
+  });
+
+  it("sanitizes photo URLs with an allowlist", () => {
+    expect(sanitizeImageUrl("https://example.com/a.jpg")).toBe(
+      "https://example.com/a.jpg",
+    );
+    expect(sanitizeImageUrl("/milei.jpg")).toBe("/milei.jpg");
+    expect(sanitizeImageUrl(null)).toBeNull();
+    expect(sanitizeImageUrl("")).toBeNull();
+    expect(sanitizeImageUrl("javascript:alert(1)")).toBeNull();
+    expect(sanitizeImageUrl("//evil.com/x.jpg")).toBeNull();
+    expect(sanitizeImageUrl("data:text/html,<b>x</b>")).toBeNull();
+    expect(sanitizeImageUrl(`https://x.com/a.jpg${"a".repeat(2100)}`)).toBeNull();
+  });
+
+  it("resolves override first, then market image and icon", () => {
+    expect(
+      resolveBackgroundImage(photoMarket, "https://example.com/custom.jpg"),
+    ).toBe("https://example.com/custom.jpg");
+    expect(resolveBackgroundImage(photoMarket)).toBe(
+      "https://polymarket.com/milei.jpg",
+    );
+    expect(
+      resolveBackgroundImage({ image: null, icon: "/icon.png" }),
+    ).toBe("/icon.png");
+    expect(
+      resolveBackgroundImage({ image: null, icon: null }, "javascript:x"),
+    ).toBeNull();
+  });
+
+  it("renders the photo layer and forces the dark treatment", () => {
+    const svg = createShareCardSvg(photoMarket, {
+      backgroundImage: "https://example.com/milei.jpg",
+      theme: "light",
+    });
+
+    expect(svg).toContain("<image");
+    expect(svg).toContain("https://example.com/milei.jpg");
+    expect(svg).toContain("pui-photo-scrim");
+    expect(svg).toContain('preserveAspectRatio="xMaxYMid slice"');
+    // Dark treatment wins over the requested light theme.
+    expect(svg).toContain("#d28457");
+    expect(svg).not.toContain("#a75c3a");
+  });
+
+  it("defaults to the market image without an override", () => {
+    const svg = createShareCardSvg(photoMarket, { theme: "dark" });
+
+    expect(svg).toContain("<image");
+    expect(svg).toContain("https://polymarket.com/milei.jpg");
+  });
+
+  it("keeps flat cards byte-identical without a photo", () => {
+    const market = normalizeMarket({
+      id: "2",
+      slug: "flat",
+      question: "Flat card?",
+      active: true,
+      outcomes: '["Yes","No"]',
+      outcomePrices: '["0.5","0.5"]',
+    });
+    const svg = createShareCardSvg(market, { theme: "dark" });
+
+    expect(svg).not.toContain("<image");
+    expect(svg).not.toContain("pui-photo-scrim");
+  });
+
+  it("plumbs backgroundImage through embed and OG URLs", () => {
+    const embed = buildEmbedUrl({
+      backgroundImage: "https://example.com/m.jpg",
+      slug: "will-bitcoin-hit-100k-in-2026",
+      surface: "share-card",
+      theme: "dark",
+    });
+    const og = buildShareImageUrl({
+      backgroundImage: "https://example.com/m.jpg",
+      format: "png",
+      slug: "will-bitcoin-hit-100k-in-2026",
+      theme: "dark",
+    });
+
+    expect(embed).toContain("backgroundImage=https%3A%2F%2Fexample.com%2Fm.jpg");
+    expect(og).toContain("backgroundImage=https%3A%2F%2Fexample.com%2Fm.jpg");
   });
 });
 

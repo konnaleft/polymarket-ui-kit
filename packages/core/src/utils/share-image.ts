@@ -86,13 +86,88 @@ function statValue(label: string, value: number | null | undefined) {
   return value ? { label, value: formatCompactNumber(value) } : null;
 }
 
+const MAX_IMAGE_URL_LENGTH = 2048;
+
+/**
+ * Allowlist for photo URLs used as card backgrounds.
+ * Accepts absolute http(s) URLs, base64 data URIs and site-relative paths.
+ * Anything else (javascript:, blob:, oversized, empty) is rejected so the
+ * value can be safely interpolated into SVG attributes and CSS url("...").
+ */
+export function sanitizeImageUrl(value: string | null | undefined): string | null {
+  if (typeof value !== "string") {
+    return null;
+  }
+
+  const trimmed = value.trim();
+
+  if (!trimmed || trimmed.length > MAX_IMAGE_URL_LENGTH) {
+    return null;
+  }
+
+  if (/^https?:\/\//i.test(trimmed)) {
+    return trimmed;
+  }
+
+  if (/^data:image\/(png|jpeg|gif|webp|svg\+xml);base64,[a-z0-9+/=]+$/i.test(trimmed)) {
+    return trimmed;
+  }
+
+  if (trimmed.startsWith("/") && !trimmed.startsWith("//")) {
+    return trimmed;
+  }
+
+  return null;
+}
+
+/**
+ * Resolves the photo for a share card: explicit override first, then the
+ * market's own Gamma image/icon. Returns null when nothing usable exists.
+ */
+export function resolveBackgroundImage(
+  market: Pick<PolymarketMarket, "image" | "icon">,
+  override?: string | null | undefined,
+): string | null {
+  return (
+    sanitizeImageUrl(override) ??
+    sanitizeImageUrl(market.image) ??
+    sanitizeImageUrl(market.icon)
+  );
+}
+
+/** Escapes a sanitized URL for interpolation inside CSS url("..."). */
+export function escapeCssUrl(value: string): string {
+  return value
+    .replace(/\\/g, "\\\\")
+    .replace(/"/g, '\\"')
+    .replace(/[\r\n]+/g, "");
+}
+
+function preserveAspectRatioForPosition(position: string | null | undefined): string {
+  const normalized = (position ?? "").trim().toLowerCase();
+
+  // Default matches ShareCard ("right center"): face on the right.
+  if (!normalized || /(^|\s)right(\s|$)/.test(normalized)) {
+    return "xMaxYMid slice";
+  }
+
+  if (/(^|\s)left(\s|$)/.test(normalized)) {
+    return "xMinYMid slice";
+  }
+
+  return "xMidYMid slice";
+}
+
 export function createShareCardSvg(
   market: PolymarketMarket,
   options: ShareCardSvgOptions = {},
 ): string {
   const width = options.width ?? DEFAULT_WIDTH;
   const height = options.height ?? DEFAULT_HEIGHT;
-  const theme = themes[options.theme ?? "dark"];
+  // Photo cards always use the dark treatment so text stays legible over
+  // the picture, regardless of the requested theme.
+  const photo = resolveBackgroundImage(market, options.backgroundImage);
+  const theme = photo ? themes.dark : themes[options.theme ?? "dark"];
   const attribution = options.attribution ?? "polymarket-ui-kit";
   const statusLabel = options.statusLabel ?? "Live market";
   const leadingOutcome = market.outcomes[0];
@@ -127,12 +202,17 @@ export function createShareCardSvg(
       <stop offset="0.55" stop-color="${theme.cardShade}"/>
       <stop offset="1" stop-color="${theme.card}"/>
     </linearGradient>
-    <clipPath id="pui-card-clip"><rect x="54" y="46" width="1092" height="538" rx="18"/></clipPath>
+${photo ? `    <linearGradient id="pui-photo-scrim" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0.38" stop-color="#081228" stop-opacity="0.94"/>
+      <stop offset="0.68" stop-color="#081228" stop-opacity="0.55"/>
+      <stop offset="1" stop-color="#081228" stop-opacity="0.28"/>
+    </linearGradient>
+` : ""}    <clipPath id="pui-card-clip"><rect x="54" y="46" width="1092" height="538" rx="18"/></clipPath>
   </defs>
   <rect width="1200" height="630" fill="${theme.page}"/>
   <rect x="54" y="46" width="1092" height="538" rx="18" fill="url(#pui-metal)" stroke="${theme.cardStroke}"/>
   <g clip-path="url(#pui-card-clip)">
-    <path d="M760 46h196L690 584H494z" fill="${theme.accentSoft}" opacity="0.48"/>
+${photo ? `    <image href="${escapeSvg(photo)}" x="54" y="46" width="1092" height="538" preserveAspectRatio="${preserveAspectRatioForPosition(options.backgroundPosition)}"/>\n    <rect x="54" y="46" width="1092" height="538" fill="url(#pui-photo-scrim)"/>\n` : ""}    <path d="M760 46h196L690 584H494z" fill="${theme.accentSoft}" opacity="0.48"/>
   </g>
   <circle cx="74" cy="66" r="5" fill="${theme.muted}"/>
   <circle cx="1126" cy="66" r="5" fill="${theme.muted}"/>

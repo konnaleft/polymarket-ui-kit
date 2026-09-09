@@ -4,6 +4,7 @@ import {
   createShareCardSvg,
   formatCompactNumber,
   probabilityToCents,
+  resolveBackgroundImage,
   type ShareImageFormat,
   type ShareImageTheme,
 } from "@polymarket-ui-kit/core";
@@ -56,6 +57,31 @@ function resolveFormat(value: string | null): ShareImageFormat {
   return value === "svg" ? "svg" : "png";
 }
 
+/**
+ * next/og fetches images server-side, so site-relative photo paths must be
+ * resolved against the request origin. Absolute and data: URLs pass through.
+ */
+function resolvePhotoUrl(
+  value: string | null,
+  requestUrl: string,
+): string | null {
+  if (!value) {
+    return null;
+  }
+
+  const trimmed = value.trim();
+
+  if (/^(https?:|data:image\/)/i.test(trimmed)) {
+    return trimmed;
+  }
+
+  if (trimmed.startsWith("/") && !trimmed.startsWith("//")) {
+    return new URL(trimmed, new URL(requestUrl).origin).toString();
+  }
+
+  return null;
+}
+
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const slug =
@@ -64,12 +90,19 @@ export async function GET(request: Request) {
   const format = resolveFormat(searchParams.get("format"));
   const attribution = searchParams.get("attribution") ?? "polymarket-ui-kit";
   const { market, source } = await loadPublicMarket(slug);
+  // Explicit ?backgroundImage= override, else the market's own Gamma image.
+  // Photo cards always render with the dark treatment for legibility.
+  const photo = resolvePhotoUrl(
+    resolveBackgroundImage(market, searchParams.get("backgroundImage")),
+    request.url,
+  );
 
   if (format === "svg") {
     const svg = createShareCardSvg(market, {
       attribution,
       statusLabel: source === "live" ? "Live market" : "Fixture fallback",
       theme,
+      ...(photo ? { backgroundImage: photo } : {}),
     });
 
     return new Response(svg, {
@@ -80,7 +113,7 @@ export async function GET(request: Request) {
     });
   }
 
-  const tokens = themeTokens[theme];
+  const tokens = photo ? themeTokens.dark : themeTokens[theme];
   const leadingOutcome = market.outcomes[0];
   const probability = leadingOutcome ? clampProbability(leadingOutcome.price ?? 0) : 0;
   const stats = [
@@ -124,6 +157,35 @@ export async function GET(request: Request) {
           width: 1092,
         }}
       >
+        {photo ? (
+          <img
+            src={photo}
+            alt=""
+            style={{
+              height: 538,
+              left: 0,
+              objectFit: "cover",
+              objectPosition: "right center",
+              position: "absolute",
+              top: 0,
+              width: 1092,
+            }}
+          />
+        ) : null}
+        {photo ? (
+          <div
+            style={{
+              background:
+                "linear-gradient(90deg, rgba(8, 18, 40, 0.94) 38%, rgba(8, 18, 40, 0.55) 68%, rgba(8, 18, 40, 0.28) 100%)",
+              display: "flex",
+              height: 538,
+              left: 0,
+              position: "absolute",
+              top: 0,
+              width: 1092,
+            }}
+          />
+        ) : null}
         <div
           style={{
             background: tokens.accentSoft,

@@ -15,6 +15,7 @@ import {
 export interface EmbedSnippetPanelProps {
   input: string;
   attribution?: string;
+  backgroundImage?: string;
   baseUrl?: string;
   builderCode?: string;
   className?: string;
@@ -56,6 +57,7 @@ function SnippetBlock({ copied, disabled, label, onCopy, value }: SnippetBlockPr
 
 export function EmbedSnippetPanel({
   attribution,
+  backgroundImage,
   baseUrl = "",
   builderCode,
   className,
@@ -76,6 +78,7 @@ export function EmbedSnippetPanel({
         theme,
         ...(attribution ? { attribution } : {}),
         ...(builderCode ? { builderCode } : {}),
+        ...(backgroundImage ? { backgroundImage } : {}),
       };
 
       return {
@@ -88,6 +91,7 @@ export function EmbedSnippetPanel({
             slug,
             theme,
             ...(attribution ? { attribution } : {}),
+            ...(backgroundImage ? { backgroundImage } : {}),
           }),
           ogSvg: buildShareImageUrl({
             baseUrl,
@@ -95,6 +99,7 @@ export function EmbedSnippetPanel({
             slug,
             theme,
             ...(attribution ? { attribution } : {}),
+            ...(backgroundImage ? { backgroundImage } : {}),
           }),
           react: buildReactSnippet({
             slug,
@@ -118,7 +123,7 @@ export function EmbedSnippetPanel({
         slug: null,
       };
     }
-  }, [attribution, baseUrl, builderCode, input, registryBaseUrl, surface, theme]);
+  }, [attribution, backgroundImage, baseUrl, builderCode, input, registryBaseUrl, surface, theme]);
 
   async function copyValue(label: string, value: string) {
     try {

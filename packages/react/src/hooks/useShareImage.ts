@@ -7,6 +7,8 @@ export interface UseShareImageOptions {
   theme?: ShareImageTheme;
   format?: ShareImageFormat;
   attribution?: string;
+  /** Photo override for the OG export. Empty = market.image default. */
+  backgroundImage?: string;
 }
 
 export function useShareImage({
@@ -15,12 +17,17 @@ export function useShareImage({
   theme = "dark",
   format = "png",
   attribution,
+  backgroundImage,
 }: UseShareImageOptions) {
   return useMemo(() => {
     const params = new URLSearchParams({ slug, theme, format });
 
     if (attribution) {
       params.set("attribution", attribution);
+    }
+
+    if (backgroundImage) {
+      params.set("backgroundImage", backgroundImage);
     }
 
     const path = `/api/og?${params.toString()}`;
@@ -31,5 +38,5 @@ export function useShareImage({
       alt: `Share image for ${slug}`,
       downloadName: `${slug}.${format}`,
     };
-  }, [attribution, baseUrl, format, slug, theme]);
+  }, [attribution, backgroundImage, baseUrl, format, slug, theme]);
 }

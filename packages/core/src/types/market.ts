@@ -54,6 +54,14 @@ export interface ShareCardSvgOptions {
   statusLabel?: string | undefined;
   width?: number | undefined;
   height?: number | undefined;
+  /**
+   * Photo shown behind the card (lateral layout, face on the right).
+   * Falls back to `market.image` / `market.icon` when omitted.
+   * Photo cards always render with the dark treatment for legibility.
+   */
+  backgroundImage?: string | null | undefined;
+  /** CSS-like position ("right center" default). Only horizontal edge is honored in SVG. */
+  backgroundPosition?: string | undefined;
 }
 
 export interface PolymarketMarket {
