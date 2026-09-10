@@ -20,6 +20,19 @@ function field(record: Record<string, unknown>, key: string): unknown {
   return record[key];
 }
 
+/** Gamma tags arrive as objects ({label, slug, ...}); keep their labels. */
+function asTagLabels(value: unknown): string[] {
+  const raw = Array.isArray(value) ? value : [];
+  return raw
+    .map((item) =>
+      isRecord(item)
+        ? String(item.label ?? item.name ?? item.slug ?? "")
+        : String(item ?? ""),
+    )
+    .map((label) => label.trim())
+    .filter(Boolean);
+}
+
 function parseOutcomes(record: Record<string, unknown>): MarketOutcome[] {
   const names = asStringArray(field(record, "outcomes"));
   const prices = asStringArray(field(record, "outcomePrices"));
@@ -92,7 +105,7 @@ export function normalizeMarket(raw: unknown): PolymarketMarket {
     bestAsk: asNumber(field(record, "bestAsk")),
     outcomes: parseOutcomes(record),
     clobTokenIds: asStringArray(field(record, "clobTokenIds")),
-    tags: asStringArray(field(record, "tags")),
+    tags: asTagLabels(field(record, "tags")),
     url: slug ? `https://polymarket.com/event/${slug}` : undefined,
     raw,
   };
@@ -131,7 +144,27 @@ export async function getMarketBySlug(
     { fetch: options.fetch },
   );
 
-  return normalizeMarket(data);
+  const market = normalizeMarket(data);
+
+  // Market records rarely carry a category; the parent event's tags do
+  // (e.g. "Politics" for Hormuz). Enrich silently — failures keep the fallback.
+  if (!market.category && (market.tags ?? []).length === 0) {
+    try {
+      const events = await fetchJson<unknown[]>(
+        `${options.gammaBaseUrl ?? GAMMA_BASE_URL}/events`,
+        { fetch: options.fetch, query: { slug } },
+      );
+      const firstEvent = isRecord(events[0]) ? events[0] : {};
+      const labels = asTagLabels(firstEvent.tags);
+      if (labels.length > 0) {
+        return { ...market, category: labels[0], tags: labels };
+      }
+    } catch {
+      // Keep the unenriched market; callers fall back to "Prediction market".
+    }
+  }
+
+  return market;
 }
 
 export async function searchMarkets(

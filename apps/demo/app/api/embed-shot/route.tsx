@@ -6,6 +6,7 @@ import {
   looksLikeCutout,
   resolveBackgroundImage,
   resolveCardVisual,
+  resolveMarketCategory,
   type CardVisualMode,
 } from "@polymarket-ui-kit/core";
 import { loadPublicMarket } from "../../../components/live-data";
@@ -64,7 +65,7 @@ export async function GET(request: Request) {
   // Rectangular photo forced into subject mode: blend with a fade (option B).
   const subjectFade =
     visual.kind === "subject" && visual.src && !looksLikeCutout(visual.src);
-  const category = (market.category ?? "Prediction market").toUpperCase();
+  const category = resolveMarketCategory(market).toUpperCase();
   const leadingOutcome = market.outcomes[0];
   const probability = leadingOutcome ? clampProbability(leadingOutcome.price ?? 0) : 0;
   const stats = [
@@ -220,7 +221,7 @@ export async function GET(request: Request) {
               fontFamily: "Consolas, monospace",
               fontSize: px(18),
               letterSpacing: px(1.5),
-              marginTop: px(40),
+              marginTop: px(32),
             }}
           >
             {category}
@@ -229,12 +230,12 @@ export async function GET(request: Request) {
           <div
             style={{
               color: "#ffffff",
-              fontSize: px(50),
+              fontSize: px(46),
               fontWeight: 800,
               letterSpacing: px(-1),
               lineHeight: 1.08,
               marginTop: px(14),
-              maxHeight: px(164),
+              maxHeight: px(150),
               overflow: "hidden",
               width: px(640),
             }}
@@ -265,7 +266,7 @@ export async function GET(request: Request) {
               {leadingOutcome?.name ?? "Outcome"}
             </strong>
             <strong
-              style={{ color: "#ffffff", fontSize: px(88), fontWeight: 800, letterSpacing: px(-3) }}
+              style={{ color: "#ffffff", fontSize: px(84), fontWeight: 800, letterSpacing: px(-3) }}
             >
               {formatCents(leadingOutcome?.price)}
             </strong>

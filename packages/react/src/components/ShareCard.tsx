@@ -5,6 +5,7 @@ import {
   looksLikeCutout,
   resolveBackgroundImage,
   resolveCardVisual,
+  resolveMarketCategory,
   type CardVisualMode,
   type PolymarketMarket,
 } from "@polymarket-ui-kit/core";
@@ -51,7 +52,7 @@ export function ShareCard({
     ? clampProbability(leadingOutcome.price ?? 0)
     : 0;
   const probabilityWidth = `${Math.round(probability * 100)}%`;
-  const category = market.category ?? "Prediction market";
+  const category = resolveMarketCategory(market);
   const stats = [
     market.volume
       ? { label: "Volume", value: formatCompactNumber(market.volume) }

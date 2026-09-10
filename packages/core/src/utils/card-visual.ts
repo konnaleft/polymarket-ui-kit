@@ -17,6 +17,20 @@ export function looksLikeCutout(url: string): boolean {
   return normalized.includes("-cutout.") || normalized.includes("/subjects/");
 }
 
+/** Display category: real Gamma category, else first event tag, else fallback. */
+export function resolveMarketCategory(market: {
+  category?: string | null | undefined;
+  tags?: string[] | undefined;
+}): string {
+  const category = (market.category ?? "").trim();
+  if (category) {
+    return category;
+  }
+
+  const tag = (market.tags ?? []).map((t) => t.trim()).find(Boolean);
+  return tag ?? "Prediction market";
+}
+
 /**
  * Resolves how a Trend card should render its visual.
  *

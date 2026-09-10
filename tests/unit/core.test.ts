@@ -23,6 +23,7 @@ import {
   previewFees,
   resolveBackgroundImage,
   resolveCardVisual,
+  resolveMarketCategory,
   resolvePolymarketSlug,
   sanitizeImageUrl,
   withQuery,
@@ -71,6 +72,16 @@ describe("card visual", () => {
       kind: "none",
       src: null,
     });
+  });
+
+  it("resolves the display category from tags when missing", () => {
+    expect(resolveMarketCategory({ category: "Sports", tags: [] })).toBe("Sports");
+    expect(resolveMarketCategory({ category: null, tags: ["Politics", "ships"] })).toBe(
+      "Politics",
+    );
+    expect(resolveMarketCategory({ category: null, tags: [] })).toBe(
+      "Prediction market",
+    );
   });
 });
 
