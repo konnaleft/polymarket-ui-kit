@@ -147,12 +147,17 @@ export async function getMarketBySlug(
   const market = normalizeMarket(data);
 
   // Market records rarely carry a category; the parent event's tags do
-  // (e.g. "Politics" for Hormuz). Enrich silently — failures keep the fallback.
+  // (e.g. "Politics" for Hormuz/Milei). Enrich silently — failures keep
+  // the "Prediction market" fallback instead of inventing a category.
   if (!market.category && (market.tags ?? []).length === 0) {
+    const record = isRecord(data) ? data : {};
+    const embedded = Array.isArray(record.events) ? record.events[0] : null;
+    const eventSlug =
+      (isRecord(embedded) ? String(embedded.slug ?? "") : "") || slug;
     try {
       const events = await fetchJson<unknown[]>(
         `${options.gammaBaseUrl ?? GAMMA_BASE_URL}/events`,
-        { fetch: options.fetch, query: { slug } },
+        { fetch: options.fetch, query: { slug: eventSlug } },
       );
       const firstEvent = isRecord(events[0]) ? events[0] : {};
       const labels = asTagLabels(firstEvent.tags);
