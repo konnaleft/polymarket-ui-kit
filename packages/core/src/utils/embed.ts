@@ -1,4 +1,5 @@
 import type { ShareImageFormat, ShareImageTheme } from "../types/market";
+import type { CardVisualMode } from "./card-visual";
 
 export type EmbedSurface = "market-card" | "share-card" | "builder-disclosure";
 
@@ -11,6 +12,8 @@ export interface EmbedUrlOptions {
   builderCode?: string | undefined;
   /** Photo override for share-card surfaces. Empty = market.image default. */
   backgroundImage?: string | undefined;
+  /** Visual treatment for share-card surfaces. Default = auto. */
+  visual?: CardVisualMode | undefined;
 }
 
 export interface ShareImageUrlOptions {
@@ -43,6 +46,10 @@ export interface EmbedShotUrlOptions {
   attribution?: string | undefined;
   /** Photo override for the embed-style snapshot. Empty = market.image default. */
   backgroundImage?: string | undefined;
+  /** Visual treatment for the snapshot. Default = auto. */
+  visual?: CardVisualMode | undefined;
+  /** Export scale: 1 = 1200x630, 2 = 2400x1260 (@2x). Default = 1. */
+  scale?: 1 | 2 | undefined;
 }
 
 export interface RegistryCommandOptions {
@@ -146,6 +153,7 @@ export function buildEmbedUrl({
   slug,
   surface = "share-card",
   theme = "dark",
+  visual,
 }: EmbedUrlOptions): string {
   const resolvedSlug = resolvePolymarketSlug(slug);
   const params = new URLSearchParams({
@@ -156,6 +164,7 @@ export function buildEmbedUrl({
   appendOptional(params, "attribution", attribution);
   appendOptional(params, "builderCode", builderCode);
   appendOptional(params, "backgroundImage", backgroundImage);
+  appendOptional(params, "visual", visual === "auto" ? undefined : visual);
 
   return asAbsoluteUrl(`/embed/${encodeURIComponent(resolvedSlug)}?${params.toString()}`, baseUrl);
 }
@@ -184,8 +193,10 @@ export function buildEmbedShotUrl({
   attribution,
   backgroundImage,
   baseUrl,
+  scale,
   slug,
   theme = "dark",
+  visual,
 }: EmbedShotUrlOptions): string {
   const params = new URLSearchParams({
     slug: resolvePolymarketSlug(slug),
@@ -194,6 +205,8 @@ export function buildEmbedShotUrl({
 
   appendOptional(params, "attribution", attribution);
   appendOptional(params, "backgroundImage", backgroundImage);
+  appendOptional(params, "visual", visual === "auto" ? undefined : visual);
+  appendOptional(params, "scale", scale === 2 ? "2" : undefined);
 
   return asAbsoluteUrl(`/api/embed-shot?${params.toString()}`, baseUrl);
 }

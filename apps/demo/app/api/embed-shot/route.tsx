@@ -1,19 +1,26 @@
 import { ImageResponse } from "next/og";
 import {
   clampProbability,
+  formatCents,
   formatCompactNumber,
-  probabilityToCents,
+  looksLikeCutout,
   resolveBackgroundImage,
+  resolveCardVisual,
+  type CardVisualMode,
 } from "@polymarket-ui-kit/core";
 import { loadPublicMarket } from "../../../components/live-data";
 
 export const runtime = "edge";
 export const revalidate = 300;
 
-const imageSize = {
-  width: 1200,
-  height: 630,
-};
+const BASE_WIDTH = 1200;
+const BASE_HEIGHT = 630;
+
+function resolveVisual(value: string | null): CardVisualMode {
+  return value === "subject" || value === "scene" || value === "none"
+    ? value
+    : "auto";
+}
 
 /**
  * next/og fetches images server-side, so site-relative photo paths must be
@@ -46,18 +53,18 @@ export async function GET(request: Request) {
     searchParams.get("slug") ?? "who-will-win-the-2028-us-presidential-election";
   // Snapshots always use the dark treatment (mirrors ShareCard photo cards),
   // so the ?theme= param is accepted but intentionally ignored.
-  const attribution = (
-    searchParams.get("attribution") ?? "polymarket-ui-kit"
-  ).toUpperCase();
-  const { market, source } = await loadPublicMarket(slug);
+  const scale = searchParams.get("scale") === "2" ? 2 : 1;
+  // ?attribution= is accepted for URL compatibility but no longer rendered:
+  // the topline shows the real market category (Grok mock).
+  const { market } = await loadPublicMarket(slug);
   // Explicit ?backgroundImage= override, else the market's own Gamma image.
-  // Photo cards always render with the dark treatment for legibility.
-  const photo = resolvePhotoUrl(
-    resolveBackgroundImage(market, searchParams.get("backgroundImage")),
-    request.url,
-  );
-  const kicker = (market.category ?? "Prediction market").toUpperCase();
-  const statusLabel = source === "live" ? "Trend" : "Fixture fallback";
+  const rawPhoto = resolveBackgroundImage(market, searchParams.get("backgroundImage"));
+  const visual = resolveCardVisual(rawPhoto, resolveVisual(searchParams.get("visual")));
+  const photo = resolvePhotoUrl(rawPhoto, request.url);
+  // Rectangular photo forced into subject mode: blend with a fade (option B).
+  const subjectFade =
+    visual.kind === "subject" && visual.src && !looksLikeCutout(visual.src);
+  const category = (market.category ?? "Prediction market").toUpperCase();
   const leadingOutcome = market.outcomes[0];
   const probability = leadingOutcome ? clampProbability(leadingOutcome.price ?? 0) : 0;
   const stats = [
@@ -75,11 +82,16 @@ export async function GET(request: Request) {
     ? stats.slice(0, 2)
     : [{ label: "Status", value: market.status }];
 
+  // @2x export: every dimension scales so 2400x1260 matches 1200x630 exactly.
+  const px = (n: number) => Math.round(n * scale);
+  const width = BASE_WIDTH * scale;
+  const height = BASE_HEIGHT * scale;
+
   const response = new ImageResponse(
     <div
       style={{
         alignItems: "center",
-        background: "#0a1428",
+        background: "#081228",
         display: "flex",
         fontFamily: "Arial, sans-serif",
         height: "100%",
@@ -89,216 +101,233 @@ export async function GET(request: Request) {
     >
       <div
         style={{
-          borderRadius: 28,
+          borderRadius: px(28),
           display: "flex",
           flexDirection: "column",
-          height: 630,
+          height,
           overflow: "hidden",
-          padding: "46px 64px",
+          padding: `${px(46)}px ${px(64)}px`,
           position: "relative",
-          width: 1200,
+          width,
         }}
       >
-        {photo ? (
+        {visual.kind === "scene" && photo ? (
           <img
             src={photo}
             alt=""
             style={{
-              height: 630,
+              height,
               left: 0,
               objectFit: "cover",
+              objectPosition: "center right",
               position: "absolute",
               top: 0,
-              width: 1200,
+              width,
             }}
           />
         ) : null}
-        {photo ? (
+        {visual.kind === "subject" && photo ? (
+          <img
+            src={photo}
+            alt=""
+            style={{
+              bottom: px(-20),
+              height: px(680),
+              objectFit: "contain",
+              objectPosition: "right bottom",
+              position: "absolute",
+              right: px(-24),
+              width: px(620),
+            }}
+          />
+        ) : null}
+        {visual.kind !== "none" && photo ? (
           <div
             style={{
               background:
-                "linear-gradient(90deg, rgba(8, 18, 40, 0.94) 38%, rgba(8, 18, 40, 0.55) 68%, rgba(8, 18, 40, 0.28) 100%)",
+                "linear-gradient(90deg, rgba(8, 18, 40, 1) 42%, rgba(8, 18, 40, 0.62) 62%, rgba(8, 18, 40, 0.18) 100%)",
               display: "flex",
-              height: 630,
+              height,
               left: 0,
               position: "absolute",
               top: 0,
-              width: 1200,
+              width,
+            }}
+          />
+        ) : null}
+        {subjectFade && photo ? (
+          <div
+            style={{
+              background:
+                "linear-gradient(90deg, rgba(8, 18, 40, 1) 20%, rgba(8, 18, 40, 0) 60%)",
+              display: "flex",
+              height,
+              position: "absolute",
+              right: 0,
+              top: 0,
+              width: px(672),
             }}
           />
         ) : null}
         <div
           style={{
             border: "1px solid rgba(255, 255, 255, 0.16)",
-            borderRadius: 20,
+            borderRadius: px(20),
             display: "flex",
-            height: 594,
-            left: 18,
+            height: height - px(36),
+            left: px(18),
             position: "absolute",
-            top: 18,
-            width: 1164,
+            top: px(18),
+            width: width - px(36),
           }}
         />
 
         <div
           style={{
-            alignItems: "center",
             display: "flex",
-            justifyContent: "space-between",
+            flexDirection: "column",
+            height: "100%",
             position: "relative",
-            width: "100%",
-          }}
-        >
-          <div style={{ alignItems: "center", display: "flex", gap: 22 }}>
-            <strong style={{ color: "#ffffff", fontSize: 34, fontWeight: 800 }}>
-              Polymarket {statusLabel}
-            </strong>
-          </div>
-          <span
-            style={{
-              color: "#9fb0c9",
-              fontFamily: "Consolas, monospace",
-              fontSize: 17,
-              letterSpacing: 1,
-            }}
-          >
-            {attribution}
-          </span>
-        </div>
-
-        <span
-          style={{
-            color: "#8fa1bd",
-            fontFamily: "Consolas, monospace",
-            fontSize: 18,
-            letterSpacing: 1.5,
-            marginTop: 100,
-            position: "relative",
-          }}
-        >
-          {kicker}
-        </span>
-
-        <div
-          style={{
-            display: "flex",
-            gap: 84,
-            marginTop: 18,
-            position: "relative",
+            width: px(696),
           }}
         >
           <div
             style={{
+              alignItems: "center",
+              display: "flex",
+              justifyContent: "space-between",
+              width: "100%",
+            }}
+          >
+            <strong style={{ color: "#ffffff", fontSize: px(34), fontWeight: 800 }}>
+              Polymarket Trend
+            </strong>
+            <span
+              style={{
+                color: "#9fb0c9",
+                fontFamily: "Consolas, monospace",
+                fontSize: px(17),
+                letterSpacing: px(1),
+              }}
+            >
+              {category}
+            </span>
+          </div>
+
+          <span
+            style={{
+              color: "#8fa1bd",
+              fontFamily: "Consolas, monospace",
+              fontSize: px(18),
+              letterSpacing: px(1.5),
+              marginTop: px(40),
+            }}
+          >
+            {category}
+          </span>
+
+          <div
+            style={{
               color: "#ffffff",
-              fontSize: 50,
+              fontSize: px(50),
               fontWeight: 800,
-              letterSpacing: -1,
-              lineHeight: 1.04,
-              maxHeight: 212,
+              letterSpacing: px(-1),
+              lineHeight: 1.08,
+              marginTop: px(14),
+              maxHeight: px(164),
               overflow: "hidden",
-              width: 640,
+              width: px(640),
             }}
           >
             {market.question}
           </div>
 
+          <span
+            style={{
+              color: "#8fa1bd",
+              fontFamily: "Consolas, monospace",
+              fontSize: px(16),
+              letterSpacing: px(1.2),
+              marginTop: px(22),
+            }}
+          >
+            LEADING OUTCOME
+          </span>
           <div
             style={{
-              background: "rgba(6, 14, 32, 0.55)",
-              border: "1px solid rgba(255, 255, 255, 0.22)",
-              borderRadius: 14,
+              alignItems: "baseline",
               display: "flex",
-              flexDirection: "column",
-              height: 300,
-              marginTop: -92,
-              padding: "30px 32px",
-              width: 396,
+              gap: px(28),
+              marginTop: px(6),
+            }}
+          >
+            <strong style={{ color: "#ffffff", fontSize: px(30) }}>
+              {leadingOutcome?.name ?? "Outcome"}
+            </strong>
+            <strong
+              style={{ color: "#ffffff", fontSize: px(88), fontWeight: 800, letterSpacing: px(-3) }}
+            >
+              {formatCents(leadingOutcome?.price)}
+            </strong>
+          </div>
+          <div
+            style={{
+              background: "rgba(255, 255, 255, 0.16)",
+              borderRadius: px(99),
+              display: "flex",
+              height: px(6),
+              marginTop: px(14),
+              width: px(220),
             }}
           >
             <span
               style={{
-                color: "#8fa1bd",
-                fontFamily: "Consolas, monospace",
-                fontSize: 16,
-                letterSpacing: 1.2,
-              }}
-            >
-              LEADING OUTCOME
-            </span>
-            <div
-              style={{
-                alignItems: "baseline",
+                background: "#22d3ee",
+                borderRadius: px(99),
                 display: "flex",
-                justifyContent: "space-between",
-                marginTop: 14,
+                width: `${Math.round(probability * 100)}%`,
               }}
-            >
-              <strong style={{ color: "#ffffff", fontSize: 30 }}>
-                {leadingOutcome?.name ?? "Outcome"}
-              </strong>
-              <strong
-                style={{ color: "#ffffff", fontSize: 84, fontWeight: 800 }}
-              >
-                {probabilityToCents(leadingOutcome?.price)}
-              </strong>
-            </div>
-            <div
-              style={{
-                background: "rgba(255, 255, 255, 0.18)",
-                display: "flex",
-                height: 3,
-                marginTop: "auto",
-                width: "100%",
-              }}
-            >
-              <span
-                style={{
-                  background: "#5aa9ff",
-                  display: "flex",
-                  width: `${Math.round(probability * 100)}%`,
-                }}
-              />
-            </div>
+            />
           </div>
-        </div>
 
-        <div
-          style={{
-            background: "rgba(6, 14, 32, 0.55)",
-            border: "1px solid rgba(255, 255, 255, 0.22)",
-            borderRadius: 12,
-            display: "flex",
-            gap: 100,
-            marginTop: "auto",
-            padding: "24px 32px",
-            position: "relative",
-            width: 640,
-          }}
-        >
-          {visibleStats.map((stat) => (
-            <div
-              key={stat.label}
-              style={{ display: "flex", flexDirection: "column" }}
-            >
-              <span
-                style={{
-                  color: "#8fa1bd",
-                  fontFamily: "Consolas, monospace",
-                  fontSize: 15,
-                  letterSpacing: 1.2,
-                }}
+          <div
+            style={{
+              background: "rgba(6, 14, 32, 0.45)",
+              border: "1px solid rgba(255, 255, 255, 0.22)",
+              borderRadius: px(12),
+              display: "flex",
+              gap: px(90),
+              marginTop: "auto",
+              padding: `${px(18)}px ${px(28)}px`,
+              position: "relative",
+              width: px(560),
+            }}
+          >
+            {visibleStats.map((stat) => (
+              <div
+                key={stat.label}
+                style={{ display: "flex", flexDirection: "column" }}
               >
-                {stat.label.toUpperCase()}
-              </span>
-              <strong style={{ color: "#ffffff", fontSize: 30, marginTop: 8 }}>
-                {stat.value}
-              </strong>
-            </div>
-          ))}
+                <span
+                  style={{
+                    color: "#8fa1bd",
+                    fontFamily: "Consolas, monospace",
+                    fontSize: px(15),
+                    letterSpacing: px(1.2),
+                  }}
+                >
+                  {stat.label.toUpperCase()}
+                </span>
+                <strong style={{ color: "#ffffff", fontSize: px(30), marginTop: px(8) }}>
+                  {stat.value}
+                </strong>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </div>,
-    imageSize,
+    { width, height },
   );
 
   response.headers.set(

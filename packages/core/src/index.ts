@@ -12,6 +12,7 @@ export * from "./types/combo";
 export * from "./types/market";
 export * from "./types/orderbook";
 export * from "./utils/fees";
+export * from "./utils/card-visual";
 export * from "./utils/clipboard-image";
 export * from "./utils/embed";
 export * from "./utils/fetcher";

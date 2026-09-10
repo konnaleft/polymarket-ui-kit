@@ -10,6 +10,7 @@ import {
   copyShareImageToClipboard,
   PolymarketEmbedError,
   resolvePolymarketSlug,
+  type CardVisualMode,
   type CopyShareImageStatus,
   type EmbedSurface,
   type ShareImageTheme,
@@ -25,6 +26,7 @@ export interface EmbedSnippetPanelProps {
   registryBaseUrl?: string;
   surface?: EmbedSurface;
   theme?: ShareImageTheme;
+  visual?: CardVisualMode;
 }
 
 interface SnippetBlockProps {
@@ -144,12 +146,14 @@ export function EmbedSnippetPanel({
   registryBaseUrl,
   surface = "share-card",
   theme = "dark",
+  visual = "auto",
 }: EmbedSnippetPanelProps) {
   const [copied, setCopied] = useState<string | null>(null);
   const [outputTab, setOutputTab] = useState<OutputTab>("embed");
   const resolved = useMemo(() => {
     try {
       const slug = resolvePolymarketSlug(input);
+      const visualParam = visual === "auto" ? {} : { visual };
       const common = {
         baseUrl,
         slug,
@@ -158,6 +162,7 @@ export function EmbedSnippetPanel({
         ...(attribution ? { attribution } : {}),
         ...(builderCode ? { builderCode } : {}),
         ...(backgroundImage ? { backgroundImage } : {}),
+        ...visualParam,
       };
 
       return {
@@ -170,6 +175,7 @@ export function EmbedSnippetPanel({
             theme,
             ...(attribution ? { attribution } : {}),
             ...(backgroundImage ? { backgroundImage } : {}),
+            ...visualParam,
           }),
           ogPng: buildShareImageUrl({
             baseUrl,
@@ -209,7 +215,7 @@ export function EmbedSnippetPanel({
         slug: null,
       };
     }
-  }, [attribution, backgroundImage, baseUrl, builderCode, input, registryBaseUrl, surface, theme]);
+  }, [attribution, backgroundImage, baseUrl, builderCode, input, registryBaseUrl, surface, theme, visual]);
 
   async function copyValue(label: string, value: string) {
     try {

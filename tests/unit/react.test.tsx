@@ -51,7 +51,8 @@ describe("React components", () => {
 
   it("renders a share card", () => {
     render(<ShareCard market={fixtureMarket} />);
-    expect(screen.getByText("polymarket-ui-kit")).toBeInTheDocument();
+    expect(screen.getByText("Polymarket Trend")).toBeInTheDocument();
+    expect(screen.getAllByText("Open Source").length).toBeGreaterThan(0);
   });
 
   it("renders leaderboard rows", () => {

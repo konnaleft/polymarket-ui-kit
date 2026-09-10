@@ -1019,7 +1019,6 @@
     text-shadow: 0 2px 18px rgb(0 0 0 / 0.45);
   }
 
-  .pui-share-card--photo .pui-share-card__quote,
   .pui-share-card--photo .pui-share-card__stats div {
     background: rgb(6 14 32 / 0.45);
     backdrop-filter: blur(8px);
@@ -1977,5 +1976,168 @@
 @media (max-width: 520px) {
   .pui-outcomes {
     grid-template-columns: 1fr;
+  }
+}
+
+@layer pui.components {
+  /*
+   * Grok-style Trend layout: layered scene/subject photo with a left
+   * scrim, all text in a 58% left column, odds inline (no right panel).
+   * Combo cards are untouched; every override below is scoped to
+   * .pui-share-card so shared rules keep working for combos.
+   */
+  .pui-share-card .pui-share-card__scene,
+  .pui-share-card .pui-share-card__subject,
+  .pui-share-card .pui-share-card__scrim,
+  .pui-share-card .pui-share-card__subject-fade {
+    pointer-events: none;
+    position: absolute;
+  }
+
+  .pui-share-card .pui-share-card__scene {
+    height: 100%;
+    inset: 0;
+    object-fit: cover;
+    width: 100%;
+    z-index: 0;
+  }
+
+  .pui-share-card .pui-share-card__subject {
+    bottom: 0;
+    height: 108%;
+    max-width: 52%;
+    object-fit: contain;
+    object-position: right bottom;
+    right: -2%;
+    width: auto;
+    z-index: 0;
+  }
+
+  .pui-share-card .pui-share-card__scrim {
+    background: linear-gradient(
+      90deg,
+      #081228 42%,
+      rgb(8 18 40 / 0.62) 62%,
+      rgb(8 18 40 / 0.18) 100%
+    );
+    inset: 0;
+    z-index: 1;
+  }
+
+  /* Option B: rectangular photo in subject mode blends with a fade. */
+  .pui-share-card .pui-share-card__subject-fade {
+    background: linear-gradient(
+      90deg,
+      #081228 20%,
+      rgb(8 18 40 / 0) 60%
+    );
+    bottom: 0;
+    right: 0;
+    top: 0;
+    width: 56%;
+    z-index: 1;
+  }
+
+  .pui-share-card--none .pui-share-card__scrim {
+    display: none;
+  }
+
+  .pui-share-card .pui-share-card__content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--pui-space-4);
+    grid-row: 1 / -1;
+    max-width: 58%;
+    min-height: 100%;
+    z-index: 2;
+  }
+
+  .pui-share-card--none .pui-share-card__content {
+    max-width: 100%;
+  }
+
+  .pui-share-card .pui-share-card__category {
+    color: var(--pui-text-muted);
+    font-family: var(--pui-font-mono);
+    font-size: clamp(0.48rem, 1vw, 0.62rem);
+    letter-spacing: 0.065em;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .pui-share-card .pui-share-card__eyebrow {    color: var(--pui-text-muted);
+    font-family: var(--pui-font-mono);
+    font-size: 0.62rem;
+    letter-spacing: 0.08em;
+    margin: 0;
+    opacity: 0.85;
+    text-transform: uppercase;
+  }
+
+  .pui-share-card .pui-share-card__title {
+    -webkit-line-clamp: 3;
+  }
+
+  .pui-share-card .pui-share-card__quote {
+    background: transparent;
+    border: 0;
+    display: grid;
+    gap: 0.6rem;
+    padding: 0;
+  }
+
+  .pui-share-card .pui-share-card__quote-row {
+    align-items: baseline;
+    display: flex;
+    gap: 1rem;
+  }
+
+  .pui-share-card .pui-share-card__quote-row strong {
+    font-size: 1rem;
+    font-weight: 600;
+  }
+
+  .pui-share-card .pui-share-card__price {
+    color: var(--pui-ink);
+    font-family: var(--pui-font-display);
+    font-size: clamp(2.2rem, 9cqw, 4.25rem);
+    font-weight: 700;
+    letter-spacing: -0.04em;
+    line-height: 1;
+  }
+
+  .pui-share-card .pui-share-card__bar {
+    background: rgb(255 255 255 / 0.16);
+    border-radius: 99px;
+    height: 6px;
+    max-width: 220px;
+  }
+
+  .pui-share-card .pui-share-card__bar span {
+    background: #22d3ee;
+    border-radius: inherit;
+    display: block;
+    height: 100%;
+  }
+
+  .pui-share-card .pui-share-card__stats {
+    margin-top: auto;
+  }
+
+  @container (max-width: 38rem) {
+    .pui-share-card .pui-share-card__content {
+      max-width: 100%;
+    }
+
+    .pui-share-card .pui-share-card__subject {
+      max-width: 72%;
+      opacity: 0.5;
+    }
+
+    .pui-share-card .pui-share-card__price {
+      font-size: clamp(1.9rem, 9cqw, 2.6rem);
+    }
   }
 }

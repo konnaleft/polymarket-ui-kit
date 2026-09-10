@@ -1,4 +1,5 @@
 import { BuilderFeeDisclosure, MarketCard, ShareCard } from "@polymarket-ui-kit/react";
+import type { CardVisualMode } from "@polymarket-ui-kit/core";
 import { RouteThemeSync } from "../../components/RouteThemeSync";
 import { sampleBuilder } from "../../../components/sample-builder";
 import { loadPublicMarketBundle } from "../../../components/live-data";
@@ -13,11 +14,18 @@ type EmbedPageProps = {
     builderCode?: string;
     surface?: string;
     theme?: string;
+    visual?: string;
   }>;
 };
 
 function resolveTheme(value: string | undefined): "light" | "dark" {
   return value === "light" ? "light" : "dark";
+}
+
+function resolveVisual(value: string | undefined): CardVisualMode {
+  return value === "subject" || value === "scene" || value === "none"
+    ? value
+    : "auto";
 }
 
 function resolveSurface(value: string | undefined) {
@@ -33,7 +41,6 @@ export default async function EmbedPage({ params, searchParams }: EmbedPageProps
   const query = await searchParams;
   const theme = resolveTheme(query.theme);
   const surface = resolveSurface(query.surface);
-  const attribution = query.attribution ?? "pui-kit/demo";
   const builder = query.builderCode
     ? { ...sampleBuilder, code: query.builderCode }
     : sampleBuilder;
@@ -49,7 +56,7 @@ export default async function EmbedPage({ params, searchParams }: EmbedPageProps
         {surface === "share-card" ? (
           <ShareCard
             market={market}
-            attribution={attribution}
+            visual={resolveVisual(query.visual)}
             {...(query.backgroundImage
               ? { backgroundImage: query.backgroundImage }
               : {})}

@@ -6,6 +6,7 @@ import {
   buildShareImageUrl,
   PolymarketEmbedError,
   resolvePolymarketSlug,
+  type CardVisualMode,
   type EmbedSurface,
   type ShareImageTheme,
 } from "@polymarket-ui-kit/core";
@@ -30,6 +31,13 @@ const outputModes: Array<{ label: string; value: OutputMode }> = [
   { label: "OG SVG", value: "og-svg" },
 ];
 
+const visualModes: Array<{ label: string; value: CardVisualMode }> = [
+  { label: "Auto", value: "auto" },
+  { label: "Subject (cutout)", value: "subject" },
+  { label: "Scene (full-bleed)", value: "scene" },
+  { label: "No image", value: "none" },
+];
+
 export function StudioClient() {
   const [attribution, setAttribution] = useState("pui-kit/demo");
   const [backgroundImage, setBackgroundImage] = useState("");
@@ -39,6 +47,7 @@ export function StudioClient() {
   const [outputMode, setOutputMode] = useState<OutputMode>("embed");
   const [surface, setSurface] = useState<EmbedSurface>("share-card");
   const [theme, setTheme] = useState<ShareImageTheme>("dark");
+  const [visual, setVisual] = useState<CardVisualMode>("auto");
 
   useEffect(() => {
     setOrigin(window.location.origin);
@@ -48,6 +57,7 @@ export function StudioClient() {
     try {
       const slug = resolvePolymarketSlug(input);
       const photoOverride = backgroundImage.trim() ? backgroundImage.trim() : undefined;
+      const visualParam = visual === "auto" ? {} : { visual };
       const common = {
         baseUrl: origin,
         slug,
@@ -56,6 +66,7 @@ export function StudioClient() {
         ...(attribution ? { attribution } : {}),
         ...(builderCode ? { builderCode } : {}),
         ...(photoOverride ? { backgroundImage: photoOverride } : {}),
+        ...visualParam,
       };
 
       return {
@@ -91,7 +102,7 @@ export function StudioClient() {
         slug: null,
       };
     }
-  }, [attribution, backgroundImage, builderCode, input, origin, surface, theme]);
+  }, [attribution, backgroundImage, builderCode, input, origin, surface, theme, visual]);
 
   const previewUrl =
     outputMode === "og-png"
@@ -153,6 +164,19 @@ export function StudioClient() {
               type="url"
               value={backgroundImage}
             />
+          </label>
+          <label>
+            VISUAL MODE
+            <select
+              onChange={(event) => setVisual(event.target.value as CardVisualMode)}
+              value={visual}
+            >
+              {visualModes.map((item) => (
+                <option key={item.value} value={item.value}>
+                  {item.label}
+                </option>
+              ))}
+            </select>
           </label>
           <label>
             PUBLIC BUILDER CODE
@@ -218,6 +242,7 @@ export function StudioClient() {
             input={input}
             surface={surface}
             theme={theme}
+            visual={visual}
             {...(builderCode ? { builderCode } : {})}
             {...(backgroundImage.trim() ? { backgroundImage: backgroundImage.trim() } : {})}
             {...(origin ? { registryBaseUrl: `${origin}/r` } : {})}

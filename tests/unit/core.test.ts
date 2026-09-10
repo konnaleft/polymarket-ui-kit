@@ -9,6 +9,7 @@ import {
   buildEmbedShotUrl,
   copyShareImageToClipboard,
   createShareCardSvg,
+  formatCents,
   formatCurrency,
   formatProbability,
   getBuilderFeeBps,
@@ -21,6 +22,7 @@ import {
   PolymarketEmbedError,
   previewFees,
   resolveBackgroundImage,
+  resolveCardVisual,
   resolvePolymarketSlug,
   sanitizeImageUrl,
   withQuery,
@@ -34,6 +36,41 @@ describe("core formatters", () => {
 
   it("formats currency values", () => {
     expect(formatCurrency(1234, { compact: true })).toContain("$");
+  });
+
+  it("formats cents with the cent sign", () => {
+    expect(formatCents(0.19)).toBe("19¢");
+    expect(formatCents(0.851)).toBe("85¢");
+    expect(formatCents(null)).toBe("—");
+  });
+});
+
+describe("card visual", () => {
+  it("resolves subject for cutout naming", () => {
+    expect(
+      resolveCardVisual("https://cdn.example/subjects/milei-cutout.png", "auto"),
+    ).toEqual({ kind: "subject", src: "https://cdn.example/subjects/milei-cutout.png" });
+  });
+
+  it("resolves scene for rectangular photos, even .png", () => {
+    expect(
+      resolveCardVisual("https://polymarket-upload.s3.us-east-2.amazonaws.com/x-b.png", "auto"),
+    ).toEqual({
+      kind: "scene",
+      src: "https://polymarket-upload.s3.us-east-2.amazonaws.com/x-b.png",
+    });
+  });
+
+  it("resolves none without image and honors explicit mode", () => {
+    expect(resolveCardVisual(null, "auto")).toEqual({ kind: "none", src: null });
+    expect(resolveCardVisual("https://example.com/a.jpg", "subject")).toEqual({
+      kind: "subject",
+      src: "https://example.com/a.jpg",
+    });
+    expect(resolveCardVisual("https://example.com/a.jpg", "none")).toEqual({
+      kind: "none",
+      src: null,
+    });
   });
 });
 
