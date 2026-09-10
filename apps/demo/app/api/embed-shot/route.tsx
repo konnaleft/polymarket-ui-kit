@@ -57,7 +57,7 @@ export async function GET(request: Request) {
     request.url,
   );
   const kicker = (market.category ?? "Prediction market").toUpperCase();
-  const statusLabel = source === "live" ? "TREND" : "FIXTURE FALLBACK";
+  const statusLabel = source === "live" ? "Trend" : "Fixture fallback";
   const leadingOutcome = market.outcomes[0];
   const probability = leadingOutcome ? clampProbability(leadingOutcome.price ?? 0) : 0;
   const stats = [
@@ -151,30 +151,8 @@ export async function GET(request: Request) {
         >
           <div style={{ alignItems: "center", display: "flex", gap: 22 }}>
             <strong style={{ color: "#ffffff", fontSize: 34, fontWeight: 800 }}>
-              Polymarket
+              Polymarket {statusLabel}
             </strong>
-            <div
-              style={{
-                alignItems: "center",
-                background: "#f0ede8",
-                borderRadius: 999,
-                display: "flex",
-                height: 34,
-                justifyContent: "center",
-                width: 150,
-              }}
-            >
-              <span
-                style={{
-                  color: "#33415c",
-                  fontFamily: "Consolas, monospace",
-                  fontSize: 16,
-                  letterSpacing: 1,
-                }}
-              >
-                {statusLabel}
-              </span>
-            </div>
           </div>
           <span
             style={{

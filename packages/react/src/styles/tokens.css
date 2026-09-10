@@ -895,14 +895,6 @@
     letter-spacing: -0.025em;
   }
 
-  .pui-share-card__status {
-    color: var(--pui-live);
-    font-family: var(--pui-font-mono);
-    font-size: 0.58rem;
-    letter-spacing: 0.07em;
-    text-transform: uppercase;
-  }
-
   .pui-share-card__attribution,
   .pui-share-card__label,
   .pui-combo-share-card__topline span,
@@ -1922,11 +1914,6 @@
   .pui-combo-share-card__topline span,
   .pui-combo-share-card__hero span {
     color: color-mix(in oklch, var(--pui-ink-inverse) 74%, var(--pui-primary));
-  }
-
-  .pui-share-card__status {
-    background: var(--pui-ink-inverse);
-    color: var(--pui-primary-hover);
   }
 
   .pui-share-card__quote,

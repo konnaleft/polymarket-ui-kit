@@ -73,8 +73,7 @@ export function ShareCard({
     >
       <div className="pui-share-card__topline">
         <div className="pui-row">
-          <span className="pui-share-card__brand">Polymarket</span>
-          <span className="pui-share-card__status">Trend</span>
+          <span className="pui-share-card__brand">Polymarket Trend</span>
         </div>
         <span className="pui-share-card__attribution">{attribution}</span>
       </div>
