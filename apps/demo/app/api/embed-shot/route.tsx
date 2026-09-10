@@ -57,7 +57,7 @@ export async function GET(request: Request) {
     request.url,
   );
   const kicker = (market.category ?? "Prediction market").toUpperCase();
-  const statusLabel = source === "live" ? "LIVE MARKET" : "FIXTURE FALLBACK";
+  const statusLabel = source === "live" ? "TREND" : "FIXTURE FALLBACK";
   const leadingOutcome = market.outcomes[0];
   const probability = leadingOutcome ? clampProbability(leadingOutcome.price ?? 0) : 0;
   const stats = [
